@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MINDSPACE | Dual Interface</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MINDSPACE | Mobile Optimized</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,9 +14,9 @@
     <div id="ui-layer">
         <div class="logo">🧠 <span>MINDSPACE</span></div>
 
-        <div class="input-container">
-            <input type="text" id="mind-input" placeholder="How are you feeling, or what do you wish to learn?" autocomplete="off">
-        </div>
+        <form id="mind-form" class="input-container">
+            <input type="text" id="mind-input" placeholder="Type a feeling or topic..." autocomplete="off">
+        </form>
 
         <div id="emotional-card" class="info-card">
             <h3>Comeback Portal</h3>
@@ -30,7 +30,6 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
     <script src="script.js"></script>
 </body>
 </html>
