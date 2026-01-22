@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MINDSPACE | Dual Interface</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="bg-overlay"></div>
+    <canvas id="universe-canvas"></canvas>
+
+    <div id="ui-layer">
+        <div class="logo">🧠 <span>MINDSPACE</span></div>
+
+        <div class="input-container">
+            <input type="text" id="mind-input" placeholder="How are you feeling, or what do you wish to learn?" autocomplete="off">
+        </div>
+
+        <div id="emotional-card" class="info-card">
+            <h3>Comeback Portal</h3>
+            <p id="emo-text">Connecting to the stars... Someone else felt this way yesterday and found hope.</p>
+        </div>
+
+        <div id="intellectual-card" class="info-card">
+            <h3>Perspective Box</h3>
+            <p id="int-text">Retrieving wisdom... History suggests that this architectural marvel was built on love.</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
