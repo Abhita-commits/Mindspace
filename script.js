@@ -1,163 +1,186 @@
-// --- 1. SETUP THREE.JS SCENE ---
+// --- 1. SETUP 3D SCENE ---
 const canvas = document.getElementById('universe-canvas');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-// Adjust camera based on screen size
 camera.position.z = window.innerWidth < 768 ? 40 : 30;
 
 const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-// Create Groups for the two worlds
-const constellationGroup = new THREE.Group();
-const archiveGroup = new THREE.Group();
+const starsGroup = new THREE.Group();
+const scrollsGroup = new THREE.Group();
+scene.add(starsGroup);
+scene.add(scrollsGroup);
 
-scene.add(constellationGroup);
-scene.add(archiveGroup);
-
-// --- 2. DARK MODE: CONSTELLATIONS (Emotional) ---
+// Stars
+const starMat = new THREE.PointsMaterial({ color: 0x4488ff, size: 0.6, transparent:true });
 const starGeo = new THREE.BufferGeometry();
 const starPos = [];
-for(let i=0; i<500; i++) {
-    starPos.push((Math.random() - 0.5) * 90, (Math.random() - 0.5) * 70, (Math.random() - 0.5) * 60);
-}
+for(let i=0; i<600; i++) starPos.push((Math.random()-0.5)*90, (Math.random()-0.5)*70, (Math.random()-0.5)*60);
 starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
-const starMat = new THREE.PointsMaterial({ color: 0x4488ff, size: 0.6, transparent: true, opacity: 0.8 });
-const stars = new THREE.Points(starGeo, starMat);
-constellationGroup.add(stars);
+starsGroup.add(new THREE.Points(starGeo, starMat));
 
-// Fog and Background Colors
-const darkFog = new THREE.FogExp2(0x050510, 0.025);
-const lightFog = new THREE.FogExp2(0x2a1e10, 0.02);
-
-// --- 3. LIGHT MODE: ARCHIVE SCROLLS (Intellectual) ---
+// Scrolls
+const scrollMat = new THREE.MeshBasicMaterial({ color: 0xffcc88, side: THREE.DoubleSide, opacity: 0.9, transparent: true });
 const scrollGeo = new THREE.PlaneGeometry(2.5, 3.5);
-const scrollMat = new THREE.MeshBasicMaterial({ color: 0xffcc88, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
-
-for(let i=0; i<25; i++) {
-    const scroll = new THREE.Mesh(scrollGeo, scrollMat);
-    scroll.position.set((Math.random() - 0.5) * 70, (Math.random() - 0.5) * 50, (Math.random() - 0.5) * 30);
-    scroll.rotation.set(Math.random(), Math.random(), Math.random());
-    scroll.userData = { rotSpeed: (Math.random() * 0.01) + 0.005, ySpeed: (Math.random() * 0.01) };
-    archiveGroup.add(scroll);
+for(let i=0; i<20; i++) {
+    const s = new THREE.Mesh(scrollGeo, scrollMat);
+    s.position.set((Math.random()-0.5)*70, (Math.random()-0.5)*50, (Math.random()-0.5)*30);
+    s.rotation.set(Math.random(), Math.random(), Math.random());
+    s.userData = { speed: Math.random()*0.01 + 0.002 };
+    scrollsGroup.add(s);
 }
 
-// Initial State (Dark Mode)
-archiveGroup.visible = false;
-constellationGroup.visible = true;
-scene.fog = darkFog;
+scrollsGroup.visible = false;
+starsGroup.visible = true;
 
-// --- 4. ANIMATION LOOP ---
 function animate() {
     requestAnimationFrame(animate);
-
-    if(constellationGroup.visible) {
-        constellationGroup.rotation.y += 0.0008;
-        stars.rotation.z -= 0.0002;
-    }
-
-    if(archiveGroup.visible) {
-        archiveGroup.children.forEach(scroll => {
-            scroll.rotation.x += scroll.userData.rotSpeed;
-            scroll.rotation.y += scroll.userData.rotSpeed;
-            scroll.position.y += Math.sin(Date.now() * 0.001) * 0.02;
+    if(starsGroup.visible) { starsGroup.rotation.y += 0.0005; starsGroup.rotation.z -= 0.0002; }
+    if(scrollsGroup.visible) {
+        scrollsGroup.children.forEach(s => {
+            s.rotation.x += s.userData.speed;
+            s.position.y += Math.sin(Date.now()*0.001)*0.01;
         });
     }
     renderer.render(scene, camera);
 }
 animate();
 
-// --- 5. LOGIC ENGINE ---
-const form = document.getElementById('mind-form');
-const input = document.getElementById('mind-input');
-const toggle = document.getElementById('checkbox');
-const emoCard = document.getElementById('emotional-card');
-const intCard = document.getElementById('intellectual-card');
+// --- 2. SETTINGS PANEL LOGIC ---
+const settingsBtn = document.getElementById('settings-btn');
+const settingsPanel = document.getElementById('settings-panel');
 
-// Expanded Keywords
-const emoKeywords = ['sad', 'happy', 'feel', 'lonely', 'depressed', 'anxious', 'scared', 'love', 'hate', 'cry', 'angry', 'upset', 'tired', 'overwhelmed', 'stress', 'hope', 'pain', 'emotion', 'heart', 'broken', 'smile', 'joy', 'fear', 'alone'];
-const intKeywords = ['history', 'science', 'math', 'calculate', 'who', 'what', 'where', 'when', 'how', 'learn', 'study', 'fact', 'building', 'create', 'code', 'python', 'architecture', 'school', 'book', 'read', 'write', 'knowledge', 'brain', 'logic', 'taj mahal', 'pyramid'];
+// Toggle Panel on Button Click
+settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent document click from closing immediately
+    settingsPanel.classList.toggle('open');
+});
 
-// Function to Switch Modes
-function setMode(mode) {
-    if (mode === 'light') {
-        // Switch to Intellectual / Light
-        constellationGroup.visible = false;
-        archiveGroup.visible = true;
-        scene.fog = lightFog;
-        renderer.setClearColor(0x2a1e10); // Sepia Dark
-        toggle.checked = true; // Sync Toggle
-        
-        // UI
-        intCard.style.opacity = 1;
-        intCard.style.transform = "translateY(0)";
-        emoCard.style.opacity = 0;
-        emoCard.style.transform = "translateY(20px)";
+// Close Panel when clicking outside
+document.addEventListener('click', (e) => {
+    if (!settingsPanel.contains(e.target) && e.target !== settingsBtn) {
+        settingsPanel.classList.remove('open');
+    }
+});
+
+// --- 3. FEATURES IMPLEMENTATION ---
+
+// A. SOUND (Browser generated Brown Noise - No files needed)
+let audioContext, oscillator, gainNode;
+function setSound(isOn) {
+    updateToggleButtons(0, isOn ? 0 : 1); // Update UI
+    
+    if (isOn) {
+        if (!audioContext) {
+            // Init Audio Engine
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioContext();
+            
+            // Create Brown Noise (Deep Space Hum)
+            const bufferSize = 4096;
+            const brownNoise = (function() {
+                const lastOut = 0;
+                const node = audioContext.createScriptProcessor(bufferSize, 1, 1);
+                node.onaudioprocess = function(e) {
+                    const output = e.outputBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        const white = Math.random() * 2 - 1;
+                        output[i] = (lastOut + (0.02 * white)) / 1.02;
+                        output[i] *= 3.5; 
+                    }
+                };
+                return node;
+            })();
+
+            gainNode = audioContext.createGain();
+            gainNode.gain.value = 0.05; // Low volume
+            brownNoise.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+        }
+        audioContext.resume();
     } else {
-        // Switch to Emotional / Dark
-        constellationGroup.visible = true;
-        archiveGroup.visible = false;
-        scene.fog = darkFog;
-        renderer.setClearColor(0x050510); // Deep Dark
-        toggle.checked = false; // Sync Toggle
-        
-        // UI
-        emoCard.style.opacity = 1;
-        emoCard.style.transform = "translateY(0)";
-        intCard.style.opacity = 0;
-        intCard.style.transform = "translateY(20px)";
+        if (audioContext) audioContext.suspend();
     }
 }
 
-// Handle Form Submit
+// B. THEME
+function setTheme(mode) {
+    const isLight = mode === 'light';
+    updateToggleButtons(1, isLight ? 1 : 0);
+    
+    if (isLight) {
+        document.body.classList.add('light-theme');
+        scene.fog = new THREE.FogExp2(0xf0f2f5, 0.02);
+        renderer.setClearColor(0xf0f2f5);
+        starMat.color.setHex(0x224488);
+    } else {
+        document.body.classList.remove('light-theme');
+        scene.fog = new THREE.FogExp2(0x050510, 0.02);
+        renderer.setClearColor(0x050510);
+        starMat.color.setHex(0x4488ff);
+    }
+}
+
+// C. FOCUS MODE
+function setFocus(isHide) {
+    updateToggleButtons(2, isHide ? 1 : 0);
+    if(isHide) document.body.classList.add('focus-mode');
+    else document.body.classList.remove('focus-mode');
+}
+
+// Helper to update button visual state
+function updateToggleButtons(rowIndex, activeIndex) {
+    const row = document.querySelectorAll('.setting-row')[rowIndex];
+    const buttons = row.querySelectorAll('.tgl-btn');
+    buttons.forEach((btn, idx) => {
+        if (idx === activeIndex) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+}
+
+// --- 4. ANALYZE & SEARCH LOGIC ---
+const sentimentWords = {
+    sad: -1, lonely: -1, depressed: -1, cry: -1, pain: -1, anxious: -1,
+    happy: 1, joy: 1, love: 1, great: 1, hope: 1, smile: 1
+};
+const intellectualWords = ['how', 'what', 'why', 'who', 'history', 'fact', 'science'];
+
+const form = document.getElementById('mind-form');
+const input = document.getElementById('mind-input');
+const clearBtn = document.getElementById('clear-btn');
+const cards = [document.getElementById('card-negative'), document.getElementById('card-positive'), document.getElementById('card-intellectual')];
+
+input.addEventListener('input', () => clearBtn.style.display = input.value.length ? 'flex' : 'none');
+clearBtn.addEventListener('click', () => { input.value = ''; clearBtn.style.display = 'none'; });
+
 form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const val = input.value.toLowerCase().trim();
+    const val = input.value.trim().toLowerCase();
     if(!val) return;
 
-    let isEmotional = emoKeywords.some(w => val.includes(w)) || val.startsWith("i am") || val.startsWith("i feel");
-    let isIntellectual = intKeywords.some(w => val.includes(w)) || val.startsWith("what") || val.startsWith("define");
-
-    if (isEmotional) {
-        setMode('dark');
-        document.getElementById('emo-text').innerText = "I sense your feelings. You are now connected to the Star-Field. You are not alone.";
-    } else if (isIntellectual) {
-        setMode('light');
-        document.getElementById('int-text').innerText = "Accessing the Archive... Retrieving wisdom and logic regarding: " + input.value;
-    } else {
-        // Default / Fallback
-        alert("I am balancing between logic and emotion. Can you be more specific?");
+    let score = 0, isInt = false;
+    if (intellectualWords.some(w => val.includes(w)) || val.includes('?')) isInt = true;
+    else {
+        val.split(' ').forEach(w => { for(let k in sentimentWords) if(w.includes(k)) score += sentimentWords[k]; });
     }
+
+    cards.forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateX(-50%) translateY(50px)'; });
+    
+    setTimeout(() => {
+        if (!isInt && score < 0) {
+            starsGroup.visible = true; scrollsGroup.visible = false;
+            cards[0].style.opacity = '1'; cards[0].style.transform = 'translateX(-50%) translateY(0)';
+        } else if (!isInt && score > 0) {
+            starsGroup.visible = true; scrollsGroup.visible = false;
+            cards[1].style.opacity = '1'; cards[1].style.transform = 'translateX(-50%) translateY(0)';
+        } else {
+            starsGroup.visible = false; scrollsGroup.visible = true;
+            cards[2].style.opacity = '1'; cards[2].style.transform = 'translateX(-50%) translateY(0)';
+        }
+    }, 100);
     input.blur();
-});
-
-// Handle Manual Toggle Switch
-toggle.addEventListener('change', (e) => {
-    if(e.target.checked) {
-        // User manually switched to Sun (Light)
-        constellationGroup.visible = false;
-        archiveGroup.visible = true;
-        scene.fog = lightFog;
-        renderer.setClearColor(0x2a1e10);
-        
-        // Show general text for manual switch
-        intCard.style.opacity = 1;
-        intCard.style.transform = "translateY(0)";
-        emoCard.style.opacity = 0;
-        document.getElementById('int-text').innerText = "Manual Override: You have entered the Archive of Wisdom.";
-    } else {
-        // User manually switched to Cloud (Dark)
-        constellationGroup.visible = true;
-        archiveGroup.visible = false;
-        scene.fog = darkFog;
-        renderer.setClearColor(0x050510);
-        
-        emoCard.style.opacity = 1;
-        emoCard.style.transform = "translateY(0)";
-        intCard.style.opacity = 0;
-        document.getElementById('emo-text').innerText = "Manual Override: You have returned to the Star-Field.";
-    }
 });
 
 // Resize
@@ -165,5 +188,4 @@ window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.position.z = window.innerWidth < 768 ? 40 : 30;
 });
