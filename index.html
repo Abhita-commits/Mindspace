@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MINDSPACE | 3D Interface</title>
+    <title>MINDSPACE | Control Center</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,30 +15,60 @@
         <header class="top-bar">
             <div class="logo">🧠 <span>MINDSPACE</span></div>
             
-            <div class="theme-switch-wrapper">
-                <label class="theme-switch" for="checkbox">
-                    <input type="checkbox" id="checkbox" />
-                    <div class="slider round">
-                        <span class="icon-sun">☀️</span>
-                        <span class="icon-cloud">☁️</span>
+            <button id="settings-btn" class="icon-btn settings-trigger">⚙️</button>
+            
+            <div id="settings-panel" class="settings-box">
+                
+                <div class="setting-row">
+                    <span class="setting-label">🔊 Ambience</span>
+                    <div class="toggle-group">
+                        <button class="tgl-btn" onclick="setSound(true)">ON</button>
+                        <button class="tgl-btn active" onclick="setSound(false)">OFF</button>
                     </div>
-                </label>
+                </div>
+
+                <div class="setting-row">
+                    <span class="setting-label">🌗 Theme</span>
+                    <div class="toggle-group">
+                        <button class="tgl-btn active" onclick="setTheme('dark')">Dark</button>
+                        <button class="tgl-btn" onclick="setTheme('light')">Light</button>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <span class="setting-label">👁️ Focus UI</span>
+                    <div class="toggle-group">
+                        <button class="tgl-btn active" onclick="setFocus(false)">Show</button>
+                        <button class="tgl-btn" onclick="setFocus(true)">Hide</button>
+                    </div>
+                </div>
+
             </div>
         </header>
 
-        <form id="mind-form" class="input-container">
-            <input type="text" id="mind-input" placeholder="Type a feeling or a topic..." autocomplete="off">
-            <button type="submit" class="search-btn">➜</button>
-        </form>
-
-        <div id="emotional-card" class="info-card">
-            <h3 style="color:#4488ff">Comeback Portal</h3>
-            <p id="emo-text">Connecting to the stars... Someone else felt this way yesterday and found hope.</p>
+        <div class="search-wrapper" id="main-search">
+            <form id="mind-form" class="input-container">
+                <input type="text" id="mind-input" placeholder="Type a feeling or a topic..." autocomplete="off">
+                <div class="action-buttons">
+                    <span id="clear-btn" class="icon-btn" style="display:none;">✕</span>
+                    <button type="submit" class="icon-btn search-btn">➜</button>
+                </div>
+            </form>
         </div>
 
-        <div id="intellectual-card" class="info-card">
-            <h3 style="color:#ffaa00">Perspective Box</h3>
-            <p id="int-text">Retrieving wisdom... History suggests that this architectural marvel was built on love.</p>
+        <div id="card-negative" class="info-card emotional-card">
+            <h3>Comeback Portal</h3>
+            <p id="neg-text">Connecting to the stars... Someone else felt this pain yesterday and found hope.</p>
+        </div>
+
+        <div id="card-positive" class="info-card memory-card">
+            <h3>Star Memory</h3>
+            <p id="pos-text">Your joy has been crystallized into a new star. It will light the way for others.</p>
+        </div>
+
+        <div id="card-intellectual" class="info-card intellectual-card">
+            <h3>Perspective Box</h3>
+            <p id="int-text">Accessing the Archive... Retrieving wisdom and facts regarding your query.</p>
         </div>
     </div>
 
