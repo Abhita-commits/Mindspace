@@ -13,18 +13,18 @@ const scrollsGroup = new THREE.Group();
 scene.add(starsGroup);
 scene.add(scrollsGroup);
 
-// Stars
+// Default Dark Mode Stars
 const starMat = new THREE.PointsMaterial({ color: 0x4488ff, size: 0.6, transparent:true });
 const starGeo = new THREE.BufferGeometry();
 const starPos = [];
-for(let i=0; i<600; i++) starPos.push((Math.random()-0.5)*90, (Math.random()-0.5)*70, (Math.random()-0.5)*60);
+for(let i=0; i<800; i++) starPos.push((Math.random()-0.5)*90, (Math.random()-0.5)*70, (Math.random()-0.5)*60);
 starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
 starsGroup.add(new THREE.Points(starGeo, starMat));
 
 // Scrolls
-const scrollMat = new THREE.MeshBasicMaterial({ color: 0xffcc88, side: THREE.DoubleSide, opacity: 0.9, transparent: true });
+const scrollMat = new THREE.MeshBasicMaterial({ color: 0xD4AF37, side: THREE.DoubleSide, opacity: 0.9, transparent: true });
 const scrollGeo = new THREE.PlaneGeometry(2.5, 3.5);
-for(let i=0; i<20; i++) {
+for(let i=0; i<25; i++) {
     const s = new THREE.Mesh(scrollGeo, scrollMat);
     s.position.set((Math.random()-0.5)*70, (Math.random()-0.5)*50, (Math.random()-0.5)*30);
     s.rotation.set(Math.random(), Math.random(), Math.random());
@@ -34,6 +34,10 @@ for(let i=0; i<20; i++) {
 
 scrollsGroup.visible = false;
 starsGroup.visible = true;
+
+// Fog for depth (Initial Dark)
+let currentFog = new THREE.FogExp2(0x050510, 0.02);
+scene.fog = currentFog;
 
 function animate() {
     requestAnimationFrame(animate);
@@ -48,109 +52,129 @@ function animate() {
 }
 animate();
 
-// --- 2. SETTINGS PANEL LOGIC ---
+// --- 2. SETTINGS PANEL ---
 const settingsBtn = document.getElementById('settings-btn');
 const settingsPanel = document.getElementById('settings-panel');
+const resetBtn = document.getElementById('reset-btn');
 
-// Toggle Panel on Button Click
-settingsBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // Prevent document click from closing immediately
-    settingsPanel.classList.toggle('open');
-});
-
-// Close Panel when clicking outside
+settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsPanel.classList.toggle('open'); });
 document.addEventListener('click', (e) => {
-    if (!settingsPanel.contains(e.target) && e.target !== settingsBtn) {
-        settingsPanel.classList.remove('open');
-    }
+    if (!settingsPanel.contains(e.target) && e.target !== settingsBtn) settingsPanel.classList.remove('open');
 });
 
-// --- 3. FEATURES IMPLEMENTATION ---
+// --- 3. NEW FEATURE: SOFT AMBIENT MUSIC (Web Audio API) ---
+let audioCtx, masterGain;
+let oscillators = [];
 
-// A. SOUND (Browser generated Brown Noise - No files needed)
-let audioContext, oscillator, gainNode;
-function setSound(isOn) {
-    updateToggleButtons(0, isOn ? 0 : 1); // Update UI
+function setMusic(isOn) {
+    updateToggleButtons(0, isOn ? 0 : 1);
     
     if (isOn) {
-        if (!audioContext) {
-            // Init Audio Engine
+        if (!audioCtx) {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioContext = new AudioContext();
-            
-            // Create Brown Noise (Deep Space Hum)
-            const bufferSize = 4096;
-            const brownNoise = (function() {
-                const lastOut = 0;
-                const node = audioContext.createScriptProcessor(bufferSize, 1, 1);
-                node.onaudioprocess = function(e) {
-                    const output = e.outputBuffer.getChannelData(0);
-                    for (let i = 0; i < bufferSize; i++) {
-                        const white = Math.random() * 2 - 1;
-                        output[i] = (lastOut + (0.02 * white)) / 1.02;
-                        output[i] *= 3.5; 
-                    }
-                };
-                return node;
-            })();
-
-            gainNode = audioContext.createGain();
-            gainNode.gain.value = 0.05; // Low volume
-            brownNoise.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            audioCtx = new AudioContext();
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.15; // Soft volume
+            masterGain.connect(audioCtx.destination);
         }
-        audioContext.resume();
+        
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (oscillators.length > 0) return; // Already playing
+
+        // Create a soft "Space Pad" chord (Cmaj7 spread out)
+        // Frequencies: C3 (130.8), G3 (196.0), B3 (246.9), E4 (329.6)
+        const freqs = [130.81, 196.00, 246.94, 329.63]; 
+        
+        freqs.forEach(f => {
+            const osc = audioCtx.createOscillator();
+            osc.type = 'sine'; // Sine waves are soft and pure
+            osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+            
+            // Slight detune for "spacey" drift
+            osc.detune.setValueAtTime((Math.random() - 0.5) * 10, audioCtx.currentTime); 
+
+            const gain = audioCtx.createGain();
+            gain.gain.value = 1.0 / freqs.length;
+            
+            osc.connect(gain);
+            gain.connect(masterGain);
+            osc.start();
+            oscillators.push(osc);
+        });
+
     } else {
-        if (audioContext) audioContext.suspend();
+        if (audioCtx) {
+            oscillators.forEach(o => o.stop());
+            oscillators = [];
+        }
     }
 }
 
-// B. THEME
+// --- 4. THEME LOGIC (Warm/Dark) ---
 function setTheme(mode) {
     const isLight = mode === 'light';
     updateToggleButtons(1, isLight ? 1 : 0);
     
     if (isLight) {
+        // Intellectual / Warm Parchment Theme
         document.body.classList.add('light-theme');
-        scene.fog = new THREE.FogExp2(0xf0f2f5, 0.02);
-        renderer.setClearColor(0xf0f2f5);
-        starMat.color.setHex(0x224488);
+        scene.fog = new THREE.FogExp2(0xF2EBD4, 0.02); // Warm Fog
+        renderer.setClearColor(0xF2EBD4);
+        starMat.color.setHex(0x3D2C1D); // Dark Brown stars
+        starMat.opacity = 0.5;
     } else {
+        // Emotional / Dark Theme
         document.body.classList.remove('light-theme');
-        scene.fog = new THREE.FogExp2(0x050510, 0.02);
+        scene.fog = new THREE.FogExp2(0x050510, 0.02); // Dark Fog
         renderer.setClearColor(0x050510);
-        starMat.color.setHex(0x4488ff);
+        starMat.color.setHex(0x4488ff); // Blue stars
+        starMat.opacity = 0.8;
     }
 }
 
-// C. FOCUS MODE
+// --- 5. FOCUS MODE ---
 function setFocus(isHide) {
     updateToggleButtons(2, isHide ? 1 : 0);
     if(isHide) document.body.classList.add('focus-mode');
     else document.body.classList.remove('focus-mode');
 }
 
-// Helper to update button visual state
 function updateToggleButtons(rowIndex, activeIndex) {
     const row = document.querySelectorAll('.setting-row')[rowIndex];
     const buttons = row.querySelectorAll('.tgl-btn');
-    buttons.forEach((btn, idx) => {
-        if (idx === activeIndex) btn.classList.add('active');
-        else btn.classList.remove('active');
-    });
+    buttons.forEach((btn, idx) => idx === activeIndex ? btn.classList.add('active') : btn.classList.remove('active'));
 }
 
-// --- 4. ANALYZE & SEARCH LOGIC ---
+// --- 6. RESET / HOME LOGIC ---
+resetBtn.addEventListener('click', () => {
+    // 1. Clear Input
+    input.value = '';
+    clearBtn.style.display = 'none';
+    
+    // 2. Hide Cards
+    [cardNeg, cardPos, cardInt].forEach(c => {
+        c.style.opacity = '0';
+        c.style.transform = 'translateX(-50%) translateY(50px)';
+    });
+
+    // 3. Reset 3D World to Default (Stars visible, Scrolls hidden)
+    starsGroup.visible = true;
+    scrollsGroup.visible = false;
+});
+
+// --- 7. SEARCH LOGIC ---
 const sentimentWords = {
-    sad: -1, lonely: -1, depressed: -1, cry: -1, pain: -1, anxious: -1,
-    happy: 1, joy: 1, love: 1, great: 1, hope: 1, smile: 1
+    sad: -1, lonely: -1, depressed: -1, cry: -1, pain: -1, anxious: -1, dark: -1,
+    happy: 1, joy: 1, love: 1, great: 1, hope: 1, smile: 1, light: 1
 };
-const intellectualWords = ['how', 'what', 'why', 'who', 'history', 'fact', 'science'];
+const intellectualWords = ['how', 'what', 'why', 'who', 'history', 'fact', 'science', 'define'];
 
 const form = document.getElementById('mind-form');
 const input = document.getElementById('mind-input');
 const clearBtn = document.getElementById('clear-btn');
-const cards = [document.getElementById('card-negative'), document.getElementById('card-positive'), document.getElementById('card-intellectual')];
+const cardNeg = document.getElementById('card-negative');
+const cardPos = document.getElementById('card-positive');
+const cardInt = document.getElementById('card-intellectual');
 
 input.addEventListener('input', () => clearBtn.style.display = input.value.length ? 'flex' : 'none');
 clearBtn.addEventListener('click', () => { input.value = ''; clearBtn.style.display = 'none'; });
@@ -166,18 +190,22 @@ form.addEventListener('submit', (e) => {
         val.split(' ').forEach(w => { for(let k in sentimentWords) if(w.includes(k)) score += sentimentWords[k]; });
     }
 
-    cards.forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateX(-50%) translateY(50px)'; });
+    // Hide all first
+    [cardNeg, cardPos, cardInt].forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateX(-50%) translateY(50px)'; });
     
     setTimeout(() => {
         if (!isInt && score < 0) {
+            // Negative Emotion
             starsGroup.visible = true; scrollsGroup.visible = false;
-            cards[0].style.opacity = '1'; cards[0].style.transform = 'translateX(-50%) translateY(0)';
+            cardNeg.style.opacity = '1'; cardNeg.style.transform = 'translateX(-50%) translateY(0)';
         } else if (!isInt && score > 0) {
+            // Positive Emotion
             starsGroup.visible = true; scrollsGroup.visible = false;
-            cards[1].style.opacity = '1'; cards[1].style.transform = 'translateX(-50%) translateY(0)';
+            cardPos.style.opacity = '1'; cardPos.style.transform = 'translateX(-50%) translateY(0)';
         } else {
+            // Intellectual
             starsGroup.visible = false; scrollsGroup.visible = true;
-            cards[2].style.opacity = '1'; cards[2].style.transform = 'translateX(-50%) translateY(0)';
+            cardInt.style.opacity = '1'; cardInt.style.transform = 'translateX(-50%) translateY(0)';
         }
     }, 100);
     input.blur();
