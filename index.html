@@ -3,28 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MINDSPACE | Mobile Optimized</title>
+    <title>MINDSPACE | 3D Interface</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="bg-overlay"></div>
     <canvas id="universe-canvas"></canvas>
 
     <div id="ui-layer">
-        <div class="logo">🧠 <span>MINDSPACE</span></div>
+        
+        <header class="top-bar">
+            <div class="logo">🧠 <span>MINDSPACE</span></div>
+            
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider round">
+                        <span class="icon-sun">☀️</span>
+                        <span class="icon-cloud">☁️</span>
+                    </div>
+                </label>
+            </div>
+        </header>
 
         <form id="mind-form" class="input-container">
-            <input type="text" id="mind-input" placeholder="Type a feeling or topic..." autocomplete="off">
+            <input type="text" id="mind-input" placeholder="Type a feeling or a topic..." autocomplete="off">
+            <button type="submit" class="search-btn">➜</button>
         </form>
 
         <div id="emotional-card" class="info-card">
-            <h3>Comeback Portal</h3>
+            <h3 style="color:#4488ff">Comeback Portal</h3>
             <p id="emo-text">Connecting to the stars... Someone else felt this way yesterday and found hope.</p>
         </div>
 
         <div id="intellectual-card" class="info-card">
-            <h3>Perspective Box</h3>
+            <h3 style="color:#ffaa00">Perspective Box</h3>
             <p id="int-text">Retrieving wisdom... History suggests that this architectural marvel was built on love.</p>
         </div>
     </div>
