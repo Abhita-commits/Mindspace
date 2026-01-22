@@ -16,17 +16,17 @@
             <div class="logo">🧠 <span>MINDSPACE</span></div>
             
             <div class="header-controls">
-                <button id="reset-btn" class="icon-btn" title="Reset Universe">⟳</button>
+                <button id="reset-btn" class="control-btn" title="Reset Universe">⟳</button>
                 
-                <button id="settings-btn" class="icon-btn settings-trigger">⚙️</button>
+                <button id="settings-btn" class="control-btn settings-trigger" title="Settings">⚙️</button>
             </div>
             
             <div id="settings-panel" class="settings-box">
                 <div class="setting-row">
-                    <span class="setting-label">🎵 Melody</span>
+                    <span class="setting-label">🎵 Music</span>
                     <div class="toggle-group">
-                        <button class="tgl-btn" onclick="setMusic(true)">Play</button>
-                        <button class="tgl-btn active" onclick="setMusic(false)">Stop</button>
+                        <button class="tgl-btn" onclick="toggleMusic(true)">Play</button>
+                        <button class="tgl-btn active" onclick="toggleMusic(false)">Pause</button>
                     </div>
                 </div>
                 <div class="setting-row">
@@ -71,6 +71,10 @@
             <p id="int-text">Accessing the Archive... Retrieving wisdom and facts regarding your query.</p>
         </div>
     </div>
+
+    <audio id="bg-audio" loop>
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="script.js"></script>
