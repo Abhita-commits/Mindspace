@@ -13,7 +13,7 @@ const scrollsGroup = new THREE.Group();
 scene.add(starsGroup);
 scene.add(scrollsGroup);
 
-// Default Dark Mode Stars
+// Default Stars
 const starMat = new THREE.PointsMaterial({ color: 0x4488ff, size: 0.6, transparent:true });
 const starGeo = new THREE.BufferGeometry();
 const starPos = [];
@@ -35,7 +35,6 @@ for(let i=0; i<25; i++) {
 scrollsGroup.visible = false;
 starsGroup.visible = true;
 
-// Fog for depth (Initial Dark)
 let currentFog = new THREE.FogExp2(0x050510, 0.02);
 scene.fog = currentFog;
 
@@ -62,77 +61,40 @@ document.addEventListener('click', (e) => {
     if (!settingsPanel.contains(e.target) && e.target !== settingsBtn) settingsPanel.classList.remove('open');
 });
 
-// --- 3. NEW FEATURE: SOFT AMBIENT MUSIC (Web Audio API) ---
-let audioCtx, masterGain;
-let oscillators = [];
+// --- 3. MUSIC PLAYER (File Based) ---
+const audio = document.getElementById('bg-audio');
 
-function setMusic(isOn) {
-    updateToggleButtons(0, isOn ? 0 : 1);
-    
-    if (isOn) {
-        if (!audioCtx) {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-            masterGain = audioCtx.createGain();
-            masterGain.gain.value = 0.15; // Soft volume
-            masterGain.connect(audioCtx.destination);
-        }
-        
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        if (oscillators.length > 0) return; // Already playing
-
-        // Create a soft "Space Pad" chord (Cmaj7 spread out)
-        // Frequencies: C3 (130.8), G3 (196.0), B3 (246.9), E4 (329.6)
-        const freqs = [130.81, 196.00, 246.94, 329.63]; 
-        
-        freqs.forEach(f => {
-            const osc = audioCtx.createOscillator();
-            osc.type = 'sine'; // Sine waves are soft and pure
-            osc.frequency.setValueAtTime(f, audioCtx.currentTime);
-            
-            // Slight detune for "spacey" drift
-            osc.detune.setValueAtTime((Math.random() - 0.5) * 10, audioCtx.currentTime); 
-
-            const gain = audioCtx.createGain();
-            gain.gain.value = 1.0 / freqs.length;
-            
-            osc.connect(gain);
-            gain.connect(masterGain);
-            osc.start();
-            oscillators.push(osc);
-        });
-
+function toggleMusic(play) {
+    updateToggleButtons(0, play ? 0 : 1);
+    if (play) {
+        audio.volume = 0.5;
+        audio.play().catch(e => console.log("Interaction needed to play audio"));
     } else {
-        if (audioCtx) {
-            oscillators.forEach(o => o.stop());
-            oscillators = [];
-        }
+        audio.pause();
     }
 }
 
-// --- 4. THEME LOGIC (Warm/Dark) ---
+// --- 4. THEME LOGIC ---
 function setTheme(mode) {
     const isLight = mode === 'light';
     updateToggleButtons(1, isLight ? 1 : 0);
     
     if (isLight) {
-        // Intellectual / Warm Parchment Theme
         document.body.classList.add('light-theme');
-        scene.fog = new THREE.FogExp2(0xF2EBD4, 0.02); // Warm Fog
+        scene.fog = new THREE.FogExp2(0xF2EBD4, 0.02);
         renderer.setClearColor(0xF2EBD4);
-        starMat.color.setHex(0x3D2C1D); // Dark Brown stars
+        starMat.color.setHex(0x3D2C1D); 
         starMat.opacity = 0.5;
     } else {
-        // Emotional / Dark Theme
         document.body.classList.remove('light-theme');
-        scene.fog = new THREE.FogExp2(0x050510, 0.02); // Dark Fog
+        scene.fog = new THREE.FogExp2(0x050510, 0.02);
         renderer.setClearColor(0x050510);
-        starMat.color.setHex(0x4488ff); // Blue stars
+        starMat.color.setHex(0x4488ff);
         starMat.opacity = 0.8;
     }
 }
 
-// --- 5. FOCUS MODE ---
+// --- 5. FOCUS MODE (Only hides Search/Cards) ---
 function setFocus(isHide) {
     updateToggleButtons(2, isHide ? 1 : 0);
     if(isHide) document.body.classList.add('focus-mode');
@@ -145,24 +107,23 @@ function updateToggleButtons(rowIndex, activeIndex) {
     buttons.forEach((btn, idx) => idx === activeIndex ? btn.classList.add('active') : btn.classList.remove('active'));
 }
 
-// --- 6. RESET / HOME LOGIC ---
+// --- 6. RESET LOGIC ---
 resetBtn.addEventListener('click', () => {
-    // 1. Clear Input
     input.value = '';
     clearBtn.style.display = 'none';
     
-    // 2. Hide Cards
+    // Hide Cards
     [cardNeg, cardPos, cardInt].forEach(c => {
         c.style.opacity = '0';
         c.style.transform = 'translateX(-50%) translateY(50px)';
     });
 
-    // 3. Reset 3D World to Default (Stars visible, Scrolls hidden)
+    // Reset World
     starsGroup.visible = true;
     scrollsGroup.visible = false;
 });
 
-// --- 7. SEARCH LOGIC ---
+// --- 7. SEARCH & AI LOGIC ---
 const sentimentWords = {
     sad: -1, lonely: -1, depressed: -1, cry: -1, pain: -1, anxious: -1, dark: -1,
     happy: 1, joy: 1, love: 1, great: 1, hope: 1, smile: 1, light: 1
@@ -190,20 +151,16 @@ form.addEventListener('submit', (e) => {
         val.split(' ').forEach(w => { for(let k in sentimentWords) if(w.includes(k)) score += sentimentWords[k]; });
     }
 
-    // Hide all first
     [cardNeg, cardPos, cardInt].forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateX(-50%) translateY(50px)'; });
     
     setTimeout(() => {
         if (!isInt && score < 0) {
-            // Negative Emotion
             starsGroup.visible = true; scrollsGroup.visible = false;
             cardNeg.style.opacity = '1'; cardNeg.style.transform = 'translateX(-50%) translateY(0)';
         } else if (!isInt && score > 0) {
-            // Positive Emotion
             starsGroup.visible = true; scrollsGroup.visible = false;
             cardPos.style.opacity = '1'; cardPos.style.transform = 'translateX(-50%) translateY(0)';
         } else {
-            // Intellectual
             starsGroup.visible = false; scrollsGroup.visible = true;
             cardInt.style.opacity = '1'; cardInt.style.transform = 'translateX(-50%) translateY(0)';
         }
@@ -211,7 +168,6 @@ form.addEventListener('submit', (e) => {
     input.blur();
 });
 
-// Resize
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
