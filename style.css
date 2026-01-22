@@ -1,122 +1,215 @@
-/* --- CSS STYLING --- */
-body { 
-    margin: 0; 
-    overflow: hidden; /* Prevents scrollbars */
-    background-color: #050510; 
-    font-family: 'Segoe UI', sans-serif; 
-    color: white; 
-    -webkit-tap-highlight-color: transparent; /* Removes blue tap highlight on mobile */
+/* --- UNIVERSAL RESET & FONTS --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
+body { 
+    overflow: hidden; 
+    background-color: #050510; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    color: white; 
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 1s ease;
+}
+
+/* 3D Canvas */
 #universe-canvas { 
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; 
 }
 
+/* UI Container */
 #ui-layer {
-    position: relative; z-index: 10; height: 100vh;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    pointer-events: none;
+    position: relative; 
+    z-index: 10; 
+    height: 100vh;
+    width: 100%;
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center;
+    pointer-events: none; /* Allows clicks to pass through */
+    padding: 20px;
+}
+
+/* --- HEADER & TOGGLE SWITCH --- */
+.top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 40px;
+    pointer-events: auto;
 }
 
 .logo {
-    position: absolute; top: 30px; left: 40px;
-    font-size: 1.2rem; letter-spacing: 0.1em; font-weight: 600;
-    display: flex; align-items: center; gap: 10px;
+    font-size: 1.2rem; 
+    letter-spacing: 0.1em; 
+    font-weight: 600;
+    display: flex; 
+    align-items: center; 
+    gap: 10px;
     text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
-.logo span { opacity: 0.7; }
 
-/* The Input Bar */
-.input-container {
-    pointer-events: auto;
-    width: 50%; min-width: 300px;
-    position: relative;
-    transition: width 0.3s ease;
+/* THE SWITCH CSS */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
 }
 
-input {
-    width: 100%; padding: 18px 25px;
+.theme-switch {
+    display: inline-block;
+    height: 34px;
+    position: relative;
+    width: 70px;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.slider {
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border-radius: 34px;
+    border: 1px solid rgba(255,255,255,0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 14px;
+}
+
+.slider:before {
+    background-color: #fff;
+    bottom: 4px;
+    content: "";
+    height: 26px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 26px;
+    border-radius: 50%;
+    z-index: 2;
+}
+
+/* Slider Active State (Light Mode) */
+input:checked + .slider {
+    background-color: rgba(255, 170, 0, 0.4);
+    border-color: rgba(255, 170, 0, 0.6);
+}
+
+input:checked + .slider:before {
+    transform: translateX(36px);
+}
+
+/* Icons inside the slider */
+.icon-sun { opacity: 0.8; }
+.icon-cloud { opacity: 0.8; }
+
+
+/* --- INPUT BAR --- */
+.input-container {
+    pointer-events: auto;
+    width: 90%;          
+    max-width: 600px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+#mind-input {
+    width: 100%; 
+    padding: 18px 50px 18px 25px; /* Right padding for button */
     background: rgba(20, 20, 35, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    color: white; font-size: 1.1rem;
+    border-radius: 50px;
+    color: white; 
+    font-size: 16px; 
     backdrop-filter: blur(12px);
     transition: 0.3s;
     outline: none;
     box-shadow: 0 4px 30px rgba(0,0,0,0.3);
 }
-input:focus { 
-    border-color: rgba(255, 255, 255, 0.5); 
-    background: rgba(30, 30, 50, 0.8); 
+
+#mind-input:focus { 
+    border-color: rgba(68, 136, 255, 0.6); 
+    background: rgba(30, 30, 50, 0.9); 
+    box-shadow: 0 0 20px rgba(68, 136, 255, 0.2);
 }
 
-/* CARDS DEFAULT (Desktop) */
+/* Submit Arrow Button */
+.search-btn {
+    position: absolute;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 10px;
+    transition: color 0.3s;
+}
+.search-btn:hover { color: white; }
+
+
+/* --- CARDS --- */
 .info-card {
-    position: absolute; bottom: 100px;
-    width: 300px; padding: 20px;
+    position: absolute; 
+    bottom: 12%; 
+    width: 90%;
+    max-width: 450px;
+    padding: 25px;
     border-radius: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
+    background: rgba(20, 20, 30, 0.5);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,0.1);
     opacity: 0; 
     transform: translateY(20px);
-    transition: all 0.8s ease;
+    transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
     pointer-events: auto;
+    text-align: center;
 }
 
 #emotional-card {
-    left: 10%;
-    background: linear-gradient(135deg, rgba(20,30,80,0.6), rgba(0,0,0,0.8));
-    border-left: 3px solid #4488ff;
+    border-top: 4px solid #4488ff;
+    box-shadow: 0 10px 40px rgba(68, 136, 255, 0.15);
 }
-#emotional-card h3 { color: #4488ff; }
 
 #intellectual-card {
-    right: 10%;
-    background: linear-gradient(135deg, rgba(60,40,10,0.6), rgba(0,0,0,0.8));
-    border-right: 3px solid #ffaa00;
+    border-top: 4px solid #ffaa00;
+    box-shadow: 0 10px 40px rgba(255, 170, 0, 0.15);
 }
-#intellectual-card h3 { color: #ffaa00; }
 
-h3 { margin: 0 0 10px 0; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; }
-p { font-size: 0.9rem; line-height: 1.5; opacity: 0.8; margin: 0; }
+h3 { margin-bottom: 10px; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; }
+p { font-size: 0.95rem; line-height: 1.6; color: rgba(255,255,255,0.9); }
 
-.bg-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at center, transparent 0%, #000 120%);
-    z-index: 1; pointer-events: none;
-}
 
 /* --- MOBILE RESPONSIVENESS --- */
-@media (max-width: 768px) {
-    /* Center Logo and make it smaller */
-    .logo {
-        left: 50%;
-        transform: translateX(-50%);
-        top: 20px;
-        width: 100%;
-        justify-content: center;
+@media (max-width: 600px) {
+    .top-bar {
+        padding: 20px;
     }
 
-    /* Make input bar wider on phones */
-    .input-container {
-        width: 90%;
-        min-width: unset;
+    #ui-layer {
+        justify-content: flex-start; 
+        padding-top: 180px; /* Push input down */
     }
 
-    /* Adjust Card positioning for Mobile */
-    /* Instead of Left/Right, we center them at the bottom */
     .info-card {
-        width: 85%; /* Use percentage instead of fixed pixels */
-        left: 0; 
-        right: 0; 
-        margin: 0 auto; /* Centers the div */
-        bottom: 90px; /* Push up slightly above mobile keyboard area if needed */
-    }
-
-    /* Ensure specific cards don't use desktop positioning */
-    #emotional-card, #intellectual-card {
-        left: 0; right: 0; margin: 0 auto;
+        bottom: 50px; /* Stick to bottom on mobile */
     }
 }
