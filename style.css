@@ -1,23 +1,21 @@
 /* --- VARIABLES --- */
 :root {
-    /* Dark Mode (Default) */
     --bg-color: #050510;
     --text-color: #ffffff;
     --panel-bg: rgba(20, 20, 30, 0.95);
-    --panel-border: rgba(255, 255, 255, 0.1);
+    --panel-border: rgba(255, 255, 255, 0.15);
     --accent: #4488ff;
-    --btn-hover: rgba(255, 255, 255, 0.2);
+    --btn-bg: rgba(255, 255, 255, 0.1);
     --input-bg: rgba(30, 30, 45, 0.85);
 }
 
 body.light-theme {
-    /* NEW Light Mode: Warm Parchment / Intellectual Library */
-    --bg-color: #F2EBD4;       /* Warm Cream/Beige */
-    --text-color: #3D2C1D;     /* Dark Coffee Brown */
+    --bg-color: #F2EBD4;
+    --text-color: #3D2C1D;
     --panel-bg: rgba(255, 252, 245, 0.95);
-    --panel-border: rgba(61, 44, 29, 0.1);
-    --accent: #D4AF37;         /* Antique Gold */
-    --btn-hover: rgba(61, 44, 29, 0.1);
+    --panel-border: rgba(61, 44, 29, 0.15);
+    --accent: #D4AF37;
+    --btn-bg: rgba(61, 44, 29, 0.05);
     --input-bg: rgba(255, 255, 255, 0.8);
 }
 
@@ -44,46 +42,55 @@ body {
     position: absolute; top: 0; left: 0; width: 100%;
     display: flex; justify-content: space-between; align-items: center;
     padding: 20px 25px; pointer-events: auto;
+    z-index: 100;
 }
-.logo { font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; }
+.logo { font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
 
-/* Header Controls (Reset + Settings) */
-.header-controls { display: flex; align-items: center; gap: 15px; }
+/* HEADER CONTROLS (Aligned Perfectly) */
+.header-controls { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; /* Space between Reset and Settings */
+}
 
-.icon-btn {
-    background: none; border: none; font-size: 1.4rem; cursor: pointer;
-    color: var(--text-color); opacity: 0.7; transition: 0.3s;
+/* Standardized Button Style for Reset & Settings */
+.control-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--btn-bg);
+    border: 1px solid var(--panel-border);
+    color: var(--text-color);
+    font-size: 1.2rem;
     display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s;
+    backdrop-filter: blur(5px);
 }
-.icon-btn:hover { opacity: 1; transform: scale(1.1); }
-#reset-btn { font-size: 1.5rem; font-weight: bold; } /* Make reset icon slightly bigger */
+.control-btn:hover { background: var(--panel-border); transform: scale(1.05); }
 
 /* Settings Panel */
 .settings-box {
-    position: absolute; top: 60px; right: 20px;
+    position: absolute; top: 70px; right: 25px;
     width: 280px;
     background: var(--panel-bg);
     backdrop-filter: blur(20px);
     border: 1px solid var(--panel-border);
-    border-radius: 12px;
-    padding: 15px;
-    display: none; flex-direction: column; gap: 15px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    z-index: 100;
+    border-radius: 16px;
+    padding: 20px;
+    display: none; flex-direction: column; gap: 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
 }
-.settings-box.open { display: flex; animation: slideDown 0.3s ease; }
-
-@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.settings-box.open { display: flex; animation: fadeInd 0.2s ease; }
+@keyframes fadeInd { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
 .setting-row { display: flex; justify-content: space-between; align-items: center; }
-.setting-label { font-size: 0.9rem; font-weight: 600; opacity: 0.9; }
+.setting-label { font-size: 0.95rem; font-weight: 600; opacity: 0.9; }
 
-/* Toggle Buttons */
-.toggle-group { display: flex; background: var(--panel-border); border-radius: 6px; padding: 2px; }
+/* Toggles */
+.toggle-group { display: flex; background: var(--btn-bg); border-radius: 8px; padding: 3px; border: 1px solid var(--panel-border); }
 .tgl-btn {
-    background: transparent; border: none; padding: 6px 12px;
-    font-size: 0.75rem; color: var(--text-color); opacity: 0.6;
-    cursor: pointer; border-radius: 4px; transition: 0.2s;
+    background: transparent; border: none; padding: 6px 14px;
+    font-size: 0.8rem; color: var(--text-color); opacity: 0.6;
+    cursor: pointer; border-radius: 6px; transition: 0.2s;
 }
 .tgl-btn.active { background: var(--accent); color: white; opacity: 1; font-weight: bold; }
 
@@ -97,24 +104,27 @@ body {
 }
 #mind-input { flex-grow: 1; background: transparent; border: none; outline: none; color: inherit; font-size: 16px; padding: 10px; }
 .action-buttons { display: flex; gap: 10px; align-items: center; }
-.search-btn { color: var(--accent); opacity: 1; font-size: 1.2rem; }
+.icon-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-color); opacity: 0.6; transition: 0.2s; }
+.icon-btn:hover { opacity: 1; }
+.search-btn { color: var(--accent); opacity: 1; font-size: 1.3rem; }
 
 /* Cards */
 .info-card {
     position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(50px);
-    width: 90%; max-width: 400px; padding: 20px 25px; border-radius: 16px;
+    width: 90%; max-width: 400px; padding: 25px; border-radius: 20px;
     background: var(--panel-bg); border: 1px solid var(--panel-border);
     opacity: 0; transition: 0.6s; pointer-events: auto; text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
-.emotional-card { border-top: 4px solid #4488ff; }
-.memory-card { border-top: 4px solid #00ffaa; }
-.intellectual-card { border-top: 4px solid #D4AF37; } /* Gold for intellectual */
+.emotional-card { border-top: 5px solid #4488ff; }
+.memory-card { border-top: 5px solid #00ffaa; }
+.intellectual-card { border-top: 5px solid #D4AF37; }
 
-h3 { margin-bottom: 8px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; }
-p { font-size: 0.95rem; line-height: 1.6; opacity: 0.85; }
+h3 { margin-bottom: 10px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; }
+p { font-size: 1rem; line-height: 1.6; opacity: 0.9; }
 
-/* Focus Mode */
-body.focus-mode .search-wrapper, body.focus-mode .info-card, body.focus-mode .logo, body.focus-mode .header-controls {
+/* FOCUS MODE: ONLY Hide Search & Cards (Keep Header Visible) */
+body.focus-mode .search-wrapper, 
+body.focus-mode .info-card {
     opacity: 0; pointer-events: none;
 }
